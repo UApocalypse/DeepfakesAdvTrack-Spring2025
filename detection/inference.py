@@ -1,6 +1,7 @@
 import os
 import argparse
 import pandas as pd
+from tqdm import tqdm
 
 from utils import FolderDataset
 from utils import Runner
@@ -30,30 +31,46 @@ def get_opts():
 def get_dataset(opts):
     ### tips: customize your transforms
     import torchvision.transforms as Transforms
-    transforms = Transforms.Compose(
-        [
-            Transforms.Resize((299, 299)),
-            Transforms.ToTensor(),
-            Transforms.Normalize([0.5] * 3, [0.5] * 3)
-        ]
-    )
+    # transforms = Transforms.Compose(
+    #     [
+    #         Transforms.Resize((299, 299)),
+    #         Transforms.ToTensor(),
+    #         Transforms.Normalize([0.5] * 3, [0.5] * 3)
+    #     ]
+    # )
+    
+    transforms = Transforms.Compose([
+                            Transforms.Resize((300, 300)),
+                            Transforms.ToTensor(),
+                            Transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
     # DO NOT change FolderDataset
     return FolderDataset(opts.data_folder, transforms) 
-
 
 def get_model_runner(opts, dataset):
     ### tips: customize your model
     import torch
     from utils import Xception
-    model = Xception()
-    model.fc = torch.nn.Linear(2048, 1)
-    model.load_state_dict(
-        torch.load(opts.model_weights)
-    )
-
+    # model = Xception()
+    # model.fc = torch.nn.Linear(2048, 1)
+    # model.load_state_dict(
+    #     torch.load(opts.model_weights)
+    # )
+    from utils.efficientnet import TransferModel
+    model = TransferModel('efficientnet-b3', num_out_classes=3)
+    model.load_state_dict(torch.load(opts.model_weights, map_location='cpu'), strict=False)
+    print(f'Load model in {opts.model_weights}')
+    
+    # TENT
+    import tent
+    import torch.optim as optim
+    model = tent.configure_model(model)
+    params, param_names = tent.collect_params(model)
+    optimizer = optim.SGD(params, lr=0.001, momentum=0.9)
+    tented_model = tent.Tent(model, optimizer)
+    
     # DO NOT change Runner
-    runner = Runner(model, dataset)
+    runner = Runner(tented_model, dataset)
     return runner
 
 

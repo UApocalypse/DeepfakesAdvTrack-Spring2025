@@ -32,6 +32,7 @@ CUDA_VISIBLE_DEVICES=0 python inference.py \
     --model-weights ./utils/weights.ckpt \
     --result-path $YOUR_SAVE_PATH
 ```
+CUDA_VISIBLE_DEVICES=0 python inference.py --your-team-name val_only --data-folder /root/autodl-tmp/val --model-weights ./utils/efn-b3_3c_60_acc0.9975.pth --result-path /root/autodl-tmp/DeepfakesAdvTrack-Spring2025/detection/result_save
 
 5. Start model evaluation
 
@@ -40,6 +41,7 @@ We evaluate a model according to AUC. Please refer to the corresponding file.
 python evaluate.py \
     --submit-path ${YOUR_SAVE_PATH}/${YOUR_TEAM_NAME}
 ```
+python evaluate.py --submit-path /root/autodl-tmp/DeepfakesAdvTrack-Spring2025/detection/result_save/
 
 ## ⚠️ Caution
 1. You can customize your transforms and models in `inference.py`. **DO NOT** modify any other codes, otherwise the way your results are calculated may be affected and your rating will be incorrect.
